@@ -1,4 +1,6 @@
-# A sample serverless function to test testing lambda functions!
+# A sample serverless function to test testing lambda functions
+
+[![Build Status](https://travis-ci.org/joshuaballoch/testing-lambda-py.svg?branch=master)](https://travis-ci.org/joshuaballoch/testing-lambda-py)
 
 ## Installation
 
