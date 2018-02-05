@@ -1,0 +1,16 @@
+service: hello_world
+
+provider:
+  name: aws
+  runtime: python3.6
+  region: us-east-1
+
+package:
+  exclude:
+    - node_modules/**
+    - .git/**
+    - '*.pyc'
+
+functions:
+  hello:
+    handler: handler.call
