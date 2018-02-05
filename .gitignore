@@ -1,5 +1,6 @@
 # Distribution / packaging
 .Python
+.venv/
 env/
 build/
 develop-eggs/
@@ -19,3 +20,6 @@ var/
 
 # Serverless directories
 .serverless
+
+# Requirements files
+requirements-dev.txt
