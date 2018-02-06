@@ -1,4 +1,1 @@
 -r requirements.in
-
-moto==1.2.0
-pytest==3.4.0
