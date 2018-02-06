@@ -56,3 +56,31 @@ resources:
               Resource: arn:aws:s3:::testing-lambda-fns-${opt:stage}/*
         Roles:
           - Ref: IamRoleLambdaExecution
+    DynamoDbTable:
+      Type: AWS::DynamoDB::Table
+      Properties:
+        TableName: my-transactions-table
+        AttributeDefinitions:
+          - AttributeName: transaction_id
+            AttributeType: S
+        KeySchema:
+          - AttributeName: transaction_id
+            KeyType: HASH
+        ProvisionedThroughput:
+          ReadCapacityUnits: 1
+          WriteCapacityUnits: 1
+    DynamoDBIamPolicy:
+      Type: AWS::IAM::Policy
+      DependsOn: DynamoDbTable
+      Properties:
+        PolicyName: lambda-dynamodb
+        PolicyDocument:
+          Version: '2012-10-17'
+          Statement:
+            - Effect: Allow
+              Action:
+                - dynamodb:GetItem
+                - dynamodb:PutItem
+              Resource: arn:aws:dynamodb:*:*:table/my-transactions-table
+        Roles:
+          - Ref: IamRoleLambdaExecution
