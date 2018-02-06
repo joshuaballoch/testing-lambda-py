@@ -1,16 +1,18 @@
-service: hello_world
+service: hello-world
 
 provider:
   name: aws
   runtime: python3.6
+  stage: ${opt:stage, 'dev'}
   region: us-east-1
 
 package:
   exclude:
+    - .venv/**
     - node_modules/**
     - .git/**
     - '*.pyc'
 
 functions:
-  hello:
+  hello_world:
     handler: handler.call
