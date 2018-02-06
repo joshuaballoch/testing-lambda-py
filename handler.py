@@ -23,13 +23,4 @@ def call(event, context):
     bucket = record['s3']['bucket']['name']
     key = record['s3']['object']['key']
 
-    table = boto3.resource('dynamodb', region_name='us-east-1').Table("my-transactions-table")
-    txn_id = re.search("incoming\/transaction-(\d*).txt", key).group(1)
-    table.put_item(
-        Item={
-            'transaction_id': txn_id,
-            'body': read_file(s3_client, bucket, key)
-        }
-    )
-
     move_object_to_processed(s3_client, bucket, key)
