@@ -1,13 +1,13 @@
 import boto3
 import pytest
 from botocore.exceptions import ClientError
-from handler import call
 from moto import mock_s3
 from moto import mock_dynamodb2
+from handler import call
 
 BUCKET = "some-bucket"
 KEY = "incoming/transaction-0001.txt"
-BODY = "Hello All!"
+BODY = "Hello World!"
 TXNS_TABLE = "my-transactions-table"
 
 ## Test Setup Functions
@@ -53,12 +53,15 @@ def set_up_dynamodb():
 
 def test_handler_moves_incoming_object_to_processed():
     with do_test_setup():
+        # Run call with an event describing the file:
         call(s3_object_created_event(BUCKET, KEY), None)
 
         conn = boto3.resource('s3', region_name='us-east-1')
+
         assert_object_doesnt_exist(conn, BUCKET, KEY)
+        # Check that it exists in `processed/`
         obj = conn.Object(BUCKET, "processed/transaction-0001.txt").get()
-        assert obj['Body'].read() == b'Hello All!'
+        assert obj['Body'].read() == b'Hello World!'
 
 def test_handler_adds_record_in_dynamo_db_about_object():
     with do_test_setup():
@@ -66,7 +69,7 @@ def test_handler_adds_record_in_dynamo_db_about_object():
 
         table = boto3.resource('dynamodb', region_name='us-east-1').Table(TXNS_TABLE)
         item = table.get_item(Key={'transaction_id': '0001'})['Item']
-        assert item['body'] == 'Hello All!'
+        assert item['body'] == 'Hello World!'
 
 ## Helpers
 
@@ -114,4 +117,3 @@ def s3_object_created_event(bucket_name, key):
         }
       ]
     }
-

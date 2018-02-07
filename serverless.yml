@@ -1,16 +1,86 @@
-service: hello_world
+service: hello-world
 
 provider:
   name: aws
   runtime: python3.6
+  stage: ${opt:stage, 'dev'}
   region: us-east-1
 
 package:
   exclude:
+    - .venv/**
     - node_modules/**
     - .git/**
     - '*.pyc'
 
 functions:
-  hello:
+  hello_world:
     handler: handler.call
+    timeout: 60
+    events:
+      - s3:
+          bucket: testingLambdaFns
+          event: s3:ObjectCreated:*
+          rules:
+            - prefix: incoming/
+
+resources:
+  Resources:
+    HelloWorldLambdaPermissionTestingLambdaFns:
+      Type: "AWS::Lambda::Permission"
+      Properties:
+        FunctionName:
+          "Fn::GetAtt":
+            - HelloUnderscoreworldLambdaFunction
+            - Arn
+        Principal: "s3.amazonaws.com"
+        Action: "lambda:InvokeFunction"
+        SourceAccount:
+          Ref: AWS::AccountId
+        SourceArn: "arn:aws:s3:::testing-lambda-fns-${opt:stage}"
+    S3BucketTestingLambdaFns:
+      Type: AWS::S3::Bucket
+      Properties:
+        BucketName: testing-lambda-fns-${opt:stage}
+    S3IamPolicy:
+      Type: AWS::IAM::Policy
+      DependsOn: S3BucketTestingLambdaFns
+      Properties:
+        PolicyName: lambda-s3
+        PolicyDocument:
+          Version: '2012-10-17'
+          Statement:
+            - Effect: Allow
+              Action:
+                - s3:*
+              Resource: arn:aws:s3:::testing-lambda-fns-${opt:stage}/*
+        Roles:
+          - Ref: IamRoleLambdaExecution
+    DynamoDbTable:
+      Type: AWS::DynamoDB::Table
+      Properties:
+        TableName: my-transactions-table
+        AttributeDefinitions:
+          - AttributeName: transaction_id
+            AttributeType: S
+        KeySchema:
+          - AttributeName: transaction_id
+            KeyType: HASH
+        ProvisionedThroughput:
+          ReadCapacityUnits: 1
+          WriteCapacityUnits: 1
+    DynamoDBIamPolicy:
+      Type: AWS::IAM::Policy
+      DependsOn: DynamoDbTable
+      Properties:
+        PolicyName: lambda-dynamodb
+        PolicyDocument:
+          Version: '2012-10-17'
+          Statement:
+            - Effect: Allow
+              Action:
+                - dynamodb:GetItem
+                - dynamodb:PutItem
+              Resource: arn:aws:dynamodb:*:*:table/my-transactions-table
+        Roles:
+          - Ref: IamRoleLambdaExecution

@@ -1,5 +1,4 @@
 import boto3
-import json
 import re
 
 def read_file(s3_client, bucket, key):
