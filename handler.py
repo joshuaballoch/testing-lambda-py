@@ -1,6 +1,12 @@
 import boto3
 import re
 
+def read_file(s3_client, bucket, key):
+    return s3_client.get_object(
+        Bucket=bucket,
+        Key=key
+    )['Body'].read().decode('utf-8')
+
 def move_object_to_processed(s3_client, original_bucket, original_key):
     new_key = re.sub("incoming\/", "processed/", original_key)
     s3_client.copy_object(
@@ -21,10 +27,7 @@ def call(event, context):
     table.put_item(
         Item={
             'transaction_id': txn_id,
-            'body': s3_client.get_object(
-                Bucket=bucket,
-                Key=key
-             )['Body'].read().decode('utf-8')
+            'body': read_file(s3_client, bucket, key)
         }
     )
 

@@ -57,11 +57,8 @@ def test_handler_moves_incoming_object_to_processed():
         call(s3_object_created_event(BUCKET, KEY), None)
 
         conn = boto3.resource('s3', region_name='us-east-1')
-        # Assert the original file doesn't exist
-        with pytest.raises(ClientError) as e_info:
-            conn.Object(BUCKET, KEY).get()
-            assert e_info.response['Error']['Code'] == 'NoSuchKey'
 
+        assert_object_doesnt_exist(conn, BUCKET, KEY)
         # Check that it exists in `processed/`
         obj = conn.Object(BUCKET, "processed/transaction-0001.txt").get()
         assert obj['Body'].read() == b'Hello World!'
@@ -74,19 +71,49 @@ def test_handler_adds_record_in_dynamo_db_about_object():
         item = table.get_item(Key={'transaction_id': '0001'})['Item']
         assert item['body'] == 'Hello World!'
 
+## Helpers
+
+def assert_object_doesnt_exist(conn, bucket_name, key):
+    with pytest.raises(ClientError) as e_info:
+        conn.Object(bucket_name, key).get()
+        assert e_info.response['Error']['Code'] == 'NoSuchKey'
+
 def s3_object_created_event(bucket_name, key):
-    # NOTE: truncated event object shown here
     return {
       "Records": [
         {
+          "eventVersion": "2.0",
+          "eventTime": "1970-01-01T00:00:00.000Z",
+          "requestParameters": {
+            "sourceIPAddress": "127.0.0.1"
+          },
           "s3": {
+            "configurationId": "testConfigRule",
             "object": {
+              "eTag": "0123456789abcdef0123456789abcdef",
+              "sequencer": "0A1B2C3D4E5F678901",
               "key": key,
+              "size": 1024
             },
             "bucket": {
+              "arn": "bucketarn",
               "name": bucket_name,
+              "ownerIdentity": {
+                "principalId": "EXAMPLE"
+              }
             },
+            "s3SchemaVersion": "1.0"
           },
+          "responseElements": {
+            "x-amz-id-2": "EXAMPLE123/5678abcdefghijklambdaisawesome/mnopqrstuvwxyzABCDEFGH",
+            "x-amz-request-id": "EXAMPLE123456789"
+          },
+          "awsRegion": "us-east-1",
+          "eventName": "ObjectCreated:Put",
+          "userIdentity": {
+            "principalId": "EXAMPLE"
+          },
+          "eventSource": "aws:s3"
         }
       ]
     }
