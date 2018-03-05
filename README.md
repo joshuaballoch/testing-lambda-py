@@ -20,7 +20,7 @@ pip3 install pip-tools
 3. Install the development requirements
 
 ```
-pip-compile --output-file requirements.txt requirements/requirements-dev.in
+pip-compile --output-file requirements-dev.txt requirements/requirements-dev.in
 
 pip install -r requirements-dev.txt
 ```
