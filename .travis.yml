@@ -11,9 +11,8 @@ install:
   - npm install
 script:
   - pytest test_handler.py
-  - serverless deploy --stage staging
-    # deploy:
-    #   provider: script
-    #   script: serverless deploy --stage staging
-    #   on:
-    #     branch: master
+deploy:
+  provider: script
+  script: serverless deploy --stage staging
+  on:
+    branch: master
