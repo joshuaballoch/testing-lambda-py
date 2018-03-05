@@ -1,5 +1,6 @@
 import boto3
 import re
+import numpy
 
 def read_file(s3_client, bucket, key):
     return s3_client.get_object(
