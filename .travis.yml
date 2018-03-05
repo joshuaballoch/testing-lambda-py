@@ -5,4 +5,9 @@ install:
   - pip install pip-tools
   - pip-compile --output-file ~/requirements-dev.txt requirements/requirements-dev.in
   - pip install -r ~/requirements-dev.txt
-script: pytest test_handler.py
+  - npm install -g serverless
+script:
+  - pytest test_handler.py
+deploy:
+  provider: script
+  script: serverless deploy --stage staging
